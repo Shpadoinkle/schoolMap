@@ -2,6 +2,7 @@
 // import 'preact/debug'
 import React from "react";
 import ReactDOM from "react-dom";
+import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import App from "./App";
 import themeStore from "./mobx/theme";
@@ -11,7 +12,6 @@ ReactDOM.render(
   <ThemeProvider theme={themeStore}>
     <App />
   </ThemeProvider>,
-
   document.getElementById("root")
 );
 

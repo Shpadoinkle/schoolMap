@@ -1,14 +1,14 @@
+import Grid from "@material-ui/core/Grid";
 import React, { Component } from "react";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
+import Btn from "../../components/Button";
+import Input from "../../components/Input";
+import Loader from "../../components/Loader";
+import Padder from "../../components/Padder";
 import Page, { PageInnerCentered } from "../../components/Page";
 import Row from "../../components/Row";
-import Text, { Heading4 } from "../../components/Text";
-import Input from "../../components/Input";
-import Btn from "../../components/Button";
-import Padder from "../../components/Padder";
-
-import Grid from "@material-ui/core/Grid";
-import Loader from "../../components/Loader";
+import { toastError } from "../../toastHelper";
+import SearchResults from "./SearchResults";
 
 const Styles = styled.div`
   flex: 1;
@@ -24,7 +24,40 @@ const Styles = styled.div`
 class SchoolSearch extends Component {
   constructor(props) {
     super(props);
-    this.state = { loading: false, suburb: "", school: "", results: [] };
+    this.state = {
+      loading: false,
+      suburb: "",
+      school: "",
+      results: [],
+      defaultLat: -27.469705,
+      defaultLong: 153.09639,
+      defaultRange: 10000,
+    };
+    this.map = React.createRef();
+    this.mapRef = React.createRef();
+    this.getLocation = this.getLocation.bind(this);
+    this.getUserCoords = this.getUserCoords.bind(this);
+  }
+
+  getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(this.getUserCoords);
+    }
+  }
+
+  getUserCoords(position) {
+    this.setState({
+      displayMap: true,
+      center: {
+        defaultLat: position.coords.latitude,
+        defaultLong: position.coords.longitude,
+      },
+    });
+  }
+
+  componentDidMount() {
+    this.getLocation();
+    this.map = new google.maps.Map(this.mapRef.current);
   }
 
   handleChange(event) {
@@ -43,101 +76,43 @@ class SchoolSearch extends Component {
   }
 
   gweg = async (base64) => {
-    const { loading, suburb, school } = this.state;
-    let suburbSearch = this.getSearchString(suburb);
+    const { school, defaultLat, defaultLong, defaultRange } = this.state;
+    // let suburbSearch = this.getSearchString(suburb);
     let schoolSearch = this.getSearchString(school);
 
-    console.log(suburbSearch);
-    console.log(schoolSearch);
+    var request = {
+      query: schoolSearch,
+      fields: ["name", "geometry"],
+      type: "school",
+    };
 
-    // search by name
-    // let searchType = "name";
-    // let apiUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${searchString}&inputtype=textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry,place_id&key=${placesApi}`;
+    let service = new google.maps.places.PlacesService(this.map, {
+      center: { lat: defaultLat, lng: defaultLong },
+      zoom: 15,
+    });
 
-    // searchType = "area";
-    // // search by area and key
-    // // Note -- lat first then long
-    // const latttt = -(27.466824).toString();
-    // const longgg = (153.045959).toString();
-    // const radiusInMeters = (10000).toString();
-
-    // apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latttt},${longgg}&radius=${radiusInMeters}&keyword=${searchString}&key=${placesApi}`;
-
-    // // Text string search
-    // apiUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?location=${latttt},${longgg}&radius=${radiusInMeters}&query=${searchString}&key=${placesApi}`;
-
-    // // console.log(apiUrl);
-    // // console.log(searchString);
-    // console.log("fetching places??......");
-    // this.setState({ loadingGoogle: true, testResults: [] });
-
-    // axios({
-    //   method: "get",
-    //   url: apiUrl,
-    // })
-    //   .then((res) => {
-    //     if (searchType === "name") {
-    //       // console.log(res.data.candidates);
-    //       // console.log('google response');
-    //       this.setState({
-    //         loadingGoogle: false,
-    //         testResults: res.data.candidates,
-    //       });
-    //       // this.getImages(searchType);
-    //     }
-    //     if (searchType === "area") {
-    //       // console.log(res.data.results);
-    //       // console.log('google response');
-    //       let chosenPoint = null;
-    //       if (!_.isEmpty(res.data.results)) {
-    //         chosenPoint = res.data.results[0].place_id;
-    //       }
-    //       this.setState({
-    //         loadingGoogle: false,
-    //         testResults: res.data.results,
-    //         chosenPoint,
-    //       });
-    //       //  this.getImages(searchType);
-
-    //       // const list = {};
-
-    //       // res.data.results.forEach(e => {
-    //       //     list[e.place_id] = e;
-    //       // });
-
-    //       // axios({
-    //       //     method: 'post',
-    //       //     url: 'https://us-central1-places-dev-e0bd8.cloudfunctions.net/places-saveplaces',
-    //       //     data: {
-    //       //         list
-    //       //     },
-    //       // })
-    //       //     .then((res) => {
-    //       //         console.log('yepppp')
-    //       //     }).catch((err) => {
-    //       //         console.log(err)
-    //       //         console.log('save error');
-    //       //     });
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     console.log("google error");
-    //     this.setState({ loadingGoogle: false });
-    //   });
+    try {
+      let goob = await service.textSearch(request, (res) => {
+        this.setState({ results: res, loading: false });
+      });
+    } catch (e) {
+      console.log(e);
+      toastError("Something went wrong fetching results");
+      this.setState({ loading: false });
+    }
   };
 
   render() {
-    const { loading, suburb, school } = this.state;
+    const { loading, suburb, school, results } = this.state;
     return (
       <Page className="fill">
         <Styles>
           <div style={{ padding: `40px 20px` }}>
             <PageInnerCentered>
               <Grid container direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={4}>
+                <Grid item xs={12} sm={5} md={4}>
                   <div className="section">
-                    <Input
+                    {/* <Input
                       id="suburb"
                       label="Suburb"
                       value={suburb}
@@ -145,7 +120,7 @@ class SchoolSearch extends Component {
                       placeholder="Enter suburb"
                       onSubmit={this.handleSubmit}
                     />
-                    <Padder />
+                    <Padder /> */}
                     <Input
                       id="school"
                       label="School name (optional)"
@@ -162,8 +137,14 @@ class SchoolSearch extends Component {
                     </Row>
                   </div>
                 </Grid>
-                <Grid item xs={12} sm={12} md={8}>
-                  <div className="section">{loading && <Loader primary />}</div>
+                <Grid item xs={12} sm={7} md={8}>
+                  <div className="section">
+                    <div style={{ height: 1, width: 1 }}>
+                      <div ref={this.mapRef}></div>
+                    </div>
+                    {loading && <Loader primary />}
+                    <SearchResults items={results} />
+                  </div>
                 </Grid>
               </Grid>
             </PageInnerCentered>
