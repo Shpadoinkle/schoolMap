@@ -1,5 +1,1 @@
-<!-- School Search
-
-This can be viewed at [my firebase project](https://thoash-schoolmap.firebaseapp.com)
-
- -->
+This can be viewed [here](https://thoash-schoolmap.firebaseapp.com)
