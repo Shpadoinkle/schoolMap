@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import SchoolSearch from "./pages/Dashboard/SchoolSearch";
 
 toast.configure({
-  autoClose: 4000,
+  autoClose: 2000,
 });
 
 class App extends Component {

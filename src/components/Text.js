@@ -6,7 +6,7 @@ import styled, { withTheme } from "styled-components";
  */
 const TextRegular = styled.p`
   font-family: "Roboto";
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: normal;
   font-stretch: normal;
   font-style: normal;

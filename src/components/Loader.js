@@ -46,7 +46,7 @@ const Loader = styled.div`
       animation: dot-keyframes 1.2s infinite ease-in-out;
       background-color: ${({ theme, primary, important, color }) => {
         if (primary) {
-          return theme.primary;
+          return theme.BLUE;
         }
 
         // TODO: Maybe add others here?

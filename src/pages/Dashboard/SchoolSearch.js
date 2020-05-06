@@ -29,9 +29,10 @@ class SchoolSearch extends Component {
       suburb: "",
       school: "",
       results: [],
+      // Brisbane Default
       defaultLat: -27.469705,
       defaultLong: 153.09639,
-      defaultRange: 10000,
+      defaultRange: 5000,
     };
     this.map = React.createRef();
     this.mapRef = React.createRef();
@@ -64,25 +65,28 @@ class SchoolSearch extends Component {
     this.setState({ [event.target.getAttribute("id")]: event.target.value });
   }
 
-  handleSubmit = async (e) => {
-    if (e) e.preventDefault();
-    this.setState({ loading: true });
-    this.gweg();
-  };
-
   getSearchString(string) {
     let returnString = encodeURIComponent(string);
     return returnString.replace(/%20/g, "+");
   }
 
-  gweg = async (base64) => {
-    const { school, defaultLat, defaultLong, defaultRange } = this.state;
-    // let suburbSearch = this.getSearchString(suburb);
-    let schoolSearch = this.getSearchString(school);
+  handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const {
+      loading,
+      school,
+      defaultLat,
+      defaultLong,
+      defaultRange,
+    } = this.state;
+    if (loading) return;
+    this.setState({ loading: true });
 
+    let schoolSearch = this.getSearchString(school);
     var request = {
       query: schoolSearch,
-      fields: ["name", "geometry"],
+      location: new google.maps.LatLng(defaultLat, defaultLong),
+      radius: defaultRange,
       type: "school",
     };
 
@@ -91,19 +95,61 @@ class SchoolSearch extends Component {
       zoom: 15,
     });
 
-    try {
-      let goob = await service.textSearch(request, (res) => {
-        this.setState({ results: res, loading: false });
+    service.textSearch(request, (res, status) => {
+      if (status === "OVER_QUERY_LIMIT") {
+        toastError("Query Limit Hit - Inital Places Fetch");
+        this.setState({ loading: false });
+      } else {
+        this.setState({ results: res, loading: false }, this.fetchWeb);
+      }
+    });
+  };
+
+  fetchWeb = async () => {
+    const { results, defaultLat, defaultLong } = this.state;
+    let service = new google.maps.places.PlacesService(this.map, {
+      center: { lat: defaultLat, lng: defaultLong },
+      zoom: 15,
+    });
+
+    for (let place of results) {
+      let request = {
+        placeId: place.place_id,
+        fields: ["website", "place_id"],
+      };
+      service.getDetails(request, (res2, status) => {
+        if (status === "OVER_QUERY_LIMIT") {
+          console.log(
+            `Query limit hit --> fetching extra website for ${place.name}`
+          );
+        } else {
+          this.updateResultWebsite({ ...res2 });
+        }
       });
-    } catch (e) {
-      console.log(e);
-      toastError("Something went wrong fetching results");
-      this.setState({ loading: false });
     }
   };
 
+  updateResultWebsite = (res) => {
+    const { results } = this.state;
+    this.setState({
+      results: results.map((e) => {
+        if (e.place_id === res.place_id) {
+          e.website = res.website;
+        }
+        return e;
+      }),
+    });
+  };
+
   render() {
-    const { loading, suburb, school, results } = this.state;
+    const {
+      loading,
+      suburb,
+      school,
+      results,
+      defaultLat,
+      defaultLong,
+    } = this.state;
     return (
       <Page className="fill">
         <Styles>
@@ -143,7 +189,7 @@ class SchoolSearch extends Component {
                       <div ref={this.mapRef}></div>
                     </div>
                     {loading && <Loader primary />}
-                    <SearchResults items={results} />
+                    {!loading && <SearchResults items={results} />}
                   </div>
                 </Grid>
               </Grid>

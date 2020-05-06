@@ -8,7 +8,7 @@ const ButtonContainer = styled.div`
   height: ${({ height, theme }) => (height ? `${height}px` : "43px")};
   background-color: ${({ theme, passive, important, primary }) =>
     primary
-      ? theme.TANGERINE
+      ? theme.BLUE
       : important
       ? theme.red
       : passive

@@ -1,24 +1,28 @@
 import React, { Component } from "react";
-import axios from "axios";
-import styled, { withTheme } from "styled-components";
-import GoogleMapReact from "google-map-react";
-import Page, { PageInnerCentered } from "../../components/Page";
+import styled from "styled-components";
+import Col from "../../components/Col";
 import Row from "../../components/Row";
-import Text, { Heading4 } from "../../components/Text";
-import Input from "../../components/Input";
-import Btn from "../../components/Button";
-import Padder from "../../components/Padder";
+import { Heading3, Label } from "../../components/Text";
 
-import Grid from "@material-ui/core/Grid";
-import Loader from "../../components/Loader";
-import { toastError, toastSuccess } from "../../toastHelper";
+const Styles = styled.div`
+  padding: 16px 0px;
+  border-top: 1px solid #ccc;
 
-/**
- *
- *
- * A previous query
- */
-import { goo } from "../../mobx/theme";
+  &:nth-child(1) {
+    border-top: none;
+    padding-top: 0px;
+  }
+`;
+
+const SchoolIcon = styled.div`
+  width: 60px;
+  height: 60px;
+  margin-right: 20px;
+
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+`;
 
 class SearchResults extends Component {
   constructor(props) {
@@ -29,8 +33,25 @@ class SearchResults extends Component {
     const { items } = this.props;
     return (
       <div>
-        {goo.map((e, i) => {
-          return <div key={i}>An item</div>;
+        {items.map((e, i) => {
+          return (
+            <Styles key={i}>
+              <Row ai="center">
+                <SchoolIcon style={{ backgroundImage: `url(${e.icon})` }} />
+                <Col>
+                  <Heading3>{e.name}</Heading3>
+                  <Label style={{ marginTop: 4, marginBottom: 4 }}>
+                    {e.formatted_address}
+                  </Label>
+                  {e.website && (
+                    <a target="_blank" href={e.website}>
+                      {e.website}
+                    </a>
+                  )}
+                </Col>
+              </Row>
+            </Styles>
+          );
         })}
       </div>
     );
