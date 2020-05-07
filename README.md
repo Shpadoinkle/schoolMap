@@ -3,4 +3,4 @@ Places api - Only uses location and radius as preferred searches.. so cannot res
 
 Be kind on the queries :p don't want a hectic bill.
 
-This can be viewed [here](https://thoash-schoolmap.firebaseapp.com)
+A live version can be found [here](https://thoash-schoolmap.firebaseapp.com)
