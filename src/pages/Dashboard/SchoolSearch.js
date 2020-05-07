@@ -192,10 +192,10 @@ class SchoolSearch extends Component {
                     <Padder />
                     <Input
                       id="school"
-                      label="School name (optional)"
+                      label="Search Input"
                       value={school}
                       onChange={(e) => this.handleChange(e)}
-                      placeholder="School name"
+                      placeholder="School name, type, address etc"
                       onSubmit={this.handleSubmit}
                     />
                     <Padder />
